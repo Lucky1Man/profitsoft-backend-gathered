@@ -13,3 +13,5 @@
 # there is no ci/cd and https
 # after your log in wia google oauth you can press burger menu(top left corner) and select second link.
 # Available participant ids: a771e994-0f30-4a27-a79b-6e2b81facdd8, 9fcb46b8-2d23-40d9-8b21-8678bacc563d
+# oauth proccess: react app makes request to gateway on oauth/authenticate -> Gateway returns redirect to google auth -> client enters cridentials over https to google -> if credentials are correct google calls oauth/callback of gateway over http -> gateway processes request and sends redirect on frontend main page
+# if you encounter 404 while using front-end you need to go to root url(I attached it in classroom) of frontend.

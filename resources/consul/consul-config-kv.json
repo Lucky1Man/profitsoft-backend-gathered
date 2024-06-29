@@ -1,0 +1,52 @@
+[
+	{
+		"key": "config/",
+		"flags": 0,
+		"value": ""
+	},
+	{
+		"key": "config/testimonies-service/",
+		"flags": 0,
+		"value": ""
+	},
+	{
+		"key": "config/testimonies-service/dev/",
+		"flags": 0,
+		"value": ""
+	},
+	{
+		"key": "config/testimonies-service/dev/address",
+		"flags": 0,
+		"value": "bG9jYWxob3N0"
+	},
+	{
+		"key": "config/testimonies-service/dev/mongo.address",
+		"flags": 0,
+		"value": "bW9uZ29kYjovLzEyNy4wLjAuMToyNzAxOA=="
+	},
+	{
+		"key": "config/testimonies-service/dev/port",
+		"flags": 0,
+		"value": "ODg4OA=="
+	},
+	{
+		"key": "config/testimonies-service/prod/",
+		"flags": 0,
+		"value": ""
+	},
+	{
+		"key": "config/testimonies-service/prod/address",
+		"flags": 0,
+		"value": "MC4wLjAuMA=="
+	},
+	{
+		"key": "config/testimonies-service/prod/mongo.address",
+		"flags": 0,
+		"value": "bW9uZ29kYjovL21vbmdvLWRiOjI3MDE3"
+	},
+	{
+		"key": "config/testimonies-service/prod/port",
+		"flags": 0,
+		"value": "ODg4OA=="
+	}
+]

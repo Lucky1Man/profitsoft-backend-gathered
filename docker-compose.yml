@@ -1,0 +1,156 @@
+version: "3.9"
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: 'bitnami/kafka:latest'
+    container_name: kafka
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=LOCAL://0.0.0.0:9092,DOCKER://0.0.0.0:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LOCAL://127.0.0.1:9092,DOCKER://kafka:9093
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_INTER_BROKER_LISTENER_NAME=LOCAL
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LOCAL:PLAINTEXT,DOCKER:PLAINTEXT
+    depends_on:
+      - zookeeper
+  kibana:
+    image: kibana:8.6.1
+    container_name: kibana
+    ports:
+      - '5601:5601'
+    depends_on:
+      - elasticsearch
+  consul:
+    image: consul:1.15.2
+    ports:
+      - '8500:8500'
+    volumes:
+      - ./docker/data/consul/data:/consul/data
+      - ./docker/data/consul/config:/consul/config
+      - ./resources/consul:/resources/consul
+    command:
+      - sh
+      - -c
+      - |
+        consul agent -server -ui -bind 0.0.0.0 -client 0.0.0.0 -data-dir /consul/data -config-dir /consul/config -bootstrap -datacenter docker &
+        consul_pid=$!
+        sleep 5
+        consul kv import -http-addr=http://0.0.0.0:8500 @/resources/consul/consul-config-kv.json
+        wait $consul_pid
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=profitsoft_rest_api
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/backup/data
+  mongo-db:
+    image: mongo:5.0.14
+    container_name: mongo-db
+    ports:
+      - '27018:27017'
+    volumes:
+      - ./docker/data/mongo/db:/data/db
+  elasticsearch:
+    image: elasticsearch:8.6.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+    volumes:
+      - ./elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+  execution-facts-and-participant-api:
+    restart: always
+    build:
+      context: /execution-facts-and-participant-api
+      dockerfile: Dockerfile
+    ports:
+      - "5006:5006"
+#          - "8081:8081"
+
+    container_name: execution-facts-and-participant-api
+    environment:
+      - DB_ADDRESS=postgres-db
+      - DB_NAME=profitsoft_rest_api
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - kafka
+      - postgres-db
+      - consul
+  testimonies-api:
+    restart: always
+    build:
+      context: /testimonies-api
+      dockerfile: Dockerfile
+    #    ports:
+    #      - '8888:8888'
+    depends_on:
+      - mongo-db
+      - consul
+    environment:
+      - NODE_ENV=prod
+  email-messages-consumer:
+    restart: always
+    build:
+      context: /email-messages-consumer
+      dockerfile: Dockerfile
+    #    ports:
+    #      - "8082:8082"
+    container_name: email-messages-consumer
+    environment:
+      - KAFKA_ADDRESS=kafka:9093
+      - ELASTIC_ADDRESS=elasticsearch:9200
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - kafka
+      - elasticsearch
+      - consul
+  gateway:
+    restart: always
+    build:
+      context: /gateway
+      dockerfile: Dockerfile
+    ports:
+      - "1000:1000"
+      - "5005:5005"
+    container_name: gateway
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - DB_ADDRESS=postgres-db
+      - DB_NAME=profitsoft_rest_api
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - consul
+      - execution-facts-and-participant-api
+      - email-messages-consumer
+      - testimonies-api
+networks:
+  default:
+    name: gws-net
+    driver: bridge
+volumes:
+  pg-data:

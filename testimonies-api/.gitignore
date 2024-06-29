@@ -1,0 +1,25 @@
+node_modules
+dist
+log
+docker
+
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+*.todo
+.eslintrc.js
+output
+log/ms*.*
+log/newrelic_agent.log
+.DS_Store
+
+# Tests
+.nyc_output
+
+*.tgz
+
+.npmrc_docker
+
+package-lock.json

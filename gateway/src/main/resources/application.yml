@@ -1,0 +1,80 @@
+addresses:
+  react-frontend: ${REACT_ADDRESS:https://localhost:3000}
+
+server:
+#  ssl:
+#    key-store-password: ${KEY_STORE_PASSWORD:password}
+#    key-store-type: PKCS12
+#    key-store: ${KEY_STORE_PATH:classpath:profitsoft.p12}
+#    key-alias: ${KEY_STORE_ALIAS:profitsoft}
+  port: 1000
+  error:
+    include-message: always
+    include-binding-errors: always
+
+oauth:
+  google:
+    clientId: ${GOOGLE_CLIENT_ID}
+    clientSecret: ${GOOGLE_CLIENT_SECRET}
+    scope: "openid profile email"
+
+spring:
+  application:
+    name: gateway
+  config:
+    import: optional:consul:/
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        health-check-path: /health
+    gateway:
+      routes:
+        - id: gateway-oauth-route
+          uri: lb://gateway
+          predicates:
+            - Path=/oauth/**
+        - id: task2-rest-api-route
+          uri: lb://task2-rest-api
+          predicates:
+            - Path=/api/v1/execution-facts/**, /api/v1/participants/**
+          filters:
+            - RewritePath=/api/v1/execution-facts/(?<remaining>.*), /api/v1/execution-facts/${remaining}
+            - RewritePath=/api/v1/participants/(?<remaining>.*), /api/v1/participants/${remaining}
+        - id: node-js-task-profitsoft-route
+          uri: lb://node-js-task-profitsoft
+          predicates:
+            - Path=/api/v1/testimonies/**
+          filters:
+            - RewritePath=api/v1/testimonies/(?<remaining>.*), api/v1/testimonies/${remaining}
+  r2dbc:
+    url: "r2dbc:postgresql://${DB_ADDRESS}:5432/${DB_NAME}"
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      services:
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 60
+        slow-call-duration-threshold:
+          - 2s
+        minimum-number-of-calls: 3
+        permitted-number-of-calls-in-half-open-state: 1
+
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: "*"

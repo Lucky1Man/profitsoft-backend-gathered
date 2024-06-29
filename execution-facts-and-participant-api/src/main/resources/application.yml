@@ -1,0 +1,53 @@
+spring:
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8501}
+      discovery:
+        health-check-path: /health
+  config:
+    import: optional:consul:/
+  kafka:
+    bootstrap-servers: ${KAFKA_ADDRESS:localhost:9092}
+    producer:
+      client-id: ${spring.application.name}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  liquibase:
+    contexts: example-showoff
+  servlet:
+    multipart:
+      max-file-size: 2MB
+  application:
+    name: task2-rest-api
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  datasource:
+    url: jdbc:postgresql://${DB_ADDRESS}:5432/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+server:
+  port: 8081
+  error:
+    include-binding-errors: always
+    include-message: always
+configuration:
+  endpoints:
+    execution-fact:
+      _list:
+        max-page-size: 500
+kafka:
+  topic:
+    simpleEmail: simpleEmail
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /
+  endpoint:
+    health:
+      show-details: always

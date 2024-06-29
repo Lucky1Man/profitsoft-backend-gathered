@@ -1,0 +1,51 @@
+version: "3.9"
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: 'bitnami/kafka:latest'
+    container_name: kafka
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=LOCAL://0.0.0.0:9092,DOCKER://0.0.0.0:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LOCAL://127.0.0.1:9092,DOCKER://kafka:9093
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_INTER_BROKER_LISTENER_NAME=LOCAL
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LOCAL:PLAINTEXT,DOCKER:PLAINTEXT
+    depends_on:
+      - zookeeper
+  kibana:
+    image: kibana:8.6.1
+    container_name: kibana
+    ports:
+      - '5601:5601'
+  consul:
+    image: consul:1.15.2
+    ports:
+      - '8500:8500'
+    volumes:
+      - consul-data:/consul/data
+      - consul-config:/consul/config
+      - consul-recourses:/resources/consul
+    command:
+      - sh
+      - -c
+      - |
+        consul agent -server -ui -bind 0.0.0.0 -client 0.0.0.0 -data-dir /consul/data -config-dir /consul/config -bootstrap -datacenter docker &
+        consul_pid=$!
+        sleep 5
+        consul kv import -http-addr=http://0.0.0.0:8500 @/consul-config-kv.json
+        wait $consul_pid
+volumes:
+  consul-data:
+  consul-config:
+  consul-recourses:

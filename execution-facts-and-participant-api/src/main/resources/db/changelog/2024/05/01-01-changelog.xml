@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1714563337625-1" author="Orest (generated)">
+        <createTable tableName="execution_facts">
+            <column name="id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_execution_facts"/>
+            </column>
+            <column name="start_time" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="finish_time" type="DATETIME"/>
+            <column name="executor_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1714563337625-2" author="Orest (generated)">
+        <createTable tableName="participants">
+            <column name="id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_participants"/>
+            </column>
+            <column name="full_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(320)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1714563337625-3" author="Orest (generated)">
+        <addUniqueConstraint columnNames="email" constraintName="participants_email_key" tableName="participants"/>
+    </changeSet>
+    <changeSet id="1714563337625-4" author="Orest (generated)">
+        <createIndex indexName="description_index" tableName="execution_facts">
+            <column name="description"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1714563337625-5" author="Orest (generated)">
+        <createIndex indexName="full_name_index" tableName="participants">
+            <column name="full_name"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1714563337625-6" author="Orest (generated)">
+        <addForeignKeyConstraint baseColumnNames="executor_id" baseTableName="execution_facts"
+                                 constraintName="FK_EXECUTION_FACTS_ON_EXECUTOR" referencedColumnNames="id"
+                                 referencedTableName="participants"/>
+    </changeSet>
+
+</databaseChangeLog>

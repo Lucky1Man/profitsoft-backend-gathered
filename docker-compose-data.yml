@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=profitsoft_rest_api
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/backup/data
+  mongo-db:
+    image: mongo:5.0.14
+    container_name: mongo-db
+    ports:
+      - '27018:27017'
+    volumes:
+      - mg-data:/data/db
+  elasticsearch:
+    image: elasticsearch:8.6.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+    volumes:
+      - el-data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+volumes:
+  pg-data:
+  mg-data:
+  el-data:

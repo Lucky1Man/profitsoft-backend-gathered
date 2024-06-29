@@ -1,0 +1,57 @@
+spring:
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8501}
+      discovery:
+        health-check-path: /health
+  config:
+    import: optional:consul:/
+  kafka:
+    consumer:
+      group-id: ${spring.application.name}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: org.example.profitsoft.*
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    bootstrap-servers: ${KAFKA_ADDRESS:localhost:9092}
+  mail:
+    host: smtp.gmail.com
+    username: ${MAIL_USER}
+    port: '587'
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: 'true'
+          auth: 'true'
+    password: ${MAIL_PASSWORD}
+  application:
+    name: ${APPLICATION_NAME:task-5-part-1}
+  elasticsearch:
+    uris: ${ELASTIC_ADDRESS:localhost:9200}
+kafka:
+  topic:
+    simpleEmail: simpleEmail
+application:
+  max-background-iterations-on-failed-messages-resend: '10'
+  resend-failed-mails-cron: 0 */5 * * * *
+server:
+  port: 8082
+  error:
+    include-binding-errors: always
+    include-message: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /
+  endpoint:
+    health:
+      show-details: always
+
